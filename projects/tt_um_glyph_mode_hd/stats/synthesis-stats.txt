@@ -1,0 +1,45 @@
+148. Printing statistics.
+
+=== tt_um_glyph_mode_hd ===
+
+        +----------Local Count, excluding submodules.
+        |        +-Local Area, excluding submodules.
+        |        | 
+     1259        - wires
+     1294        - wire bits
+       42        - public wires
+       77        - public wire bits
+        8        - ports
+       43        - port bits
+     1275 1.37E+04 cells
+       37   469.93   sg13cmos5l_a21o_1
+      150   1360.8   sg13cmos5l_a21oi_1
+       48   696.73   sg13cmos5l_a221oi_1
+       46  499.036   sg13cmos5l_a22oi_1
+       32  290.304   sg13cmos5l_and2_1
+        6   76.205   sg13cmos5l_and3_1
+        2   14.515   sg13cmos5l_buf_1
+       34 1.67E+03   sg13cmos5l_dfrbpq_1
+       32  174.182   sg13cmos5l_inv_1
+       19  344.736   sg13cmos5l_mux2_1
+        4   152.41   sg13cmos5l_mux4_1
+      156 1.13E+03   sg13cmos5l_nand2_1
+       36  326.592   sg13cmos5l_nand2b_1
+      106  961.632   sg13cmos5l_nand3_1
+        6   76.205   sg13cmos5l_nand3b_1
+       10  108.864   sg13cmos5l_nand4_1
+      145 1.05E+03   sg13cmos5l_nor2_1
+       23  208.656   sg13cmos5l_nor2b_1
+       40   362.88   sg13cmos5l_nor3_1
+        9   97.978   sg13cmos5l_nor4_1
+      157 1.42E+03   sg13cmos5l_o21ai_1
+       13  117.936   sg13cmos5l_or2_1
+        6   76.205   sg13cmos5l_or3_1
+       23  166.925   sg13cmos5l_tiehi
+       16  116.122   sg13cmos5l_tielo
+       72 1.05E+03   sg13cmos5l_xnor2_1
+       47  682.214   sg13cmos5l_xor2_1
+
+   Chip area for module '\tt_um_glyph_mode_hd': 13700.610000
+     of which used for sequential elements: 1665.619200 (12.16%)
+
