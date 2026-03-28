@@ -1,0 +1,47 @@
+192. Printing statistics.
+
+=== tt_um_algofoogle_raybox_zero ===
+
+        +----------Local Count, excluding submodules.
+        |        +-Local Area, excluding submodules.
+        |        | 
+    17299        - wires
+    17334        - wire bits
+     1820        - public wires
+     1855        - public wire bits
+        8        - ports
+       43        - port bits
+    17315 2.35E+05 cells
+      186 2.36E+03   sg13cmos5l_a21o_1
+     2172 1.97E+04   sg13cmos5l_a21oi_1
+      231 3.35E+03   sg13cmos5l_a221oi_1
+      508 5.51E+03   sg13cmos5l_a22oi_1
+      297 2.69E+03   sg13cmos5l_and2_1
+       54  685.843   sg13cmos5l_and3_1
+       19  275.789   sg13cmos5l_and4_1
+        6   43.546   sg13cmos5l_buf_1
+     1801 8.82E+04   sg13cmos5l_dfrbpq_1
+     1412 7.69E+03   sg13cmos5l_inv_1
+      448 8.13E+03   sg13cmos5l_mux2_1
+       18  685.843   sg13cmos5l_mux4_1
+     1254  9101.03   sg13cmos5l_nand2_1
+      363 3.29E+03   sg13cmos5l_nand2b_1
+      271 2.46E+03   sg13cmos5l_nand3_1
+       26  330.221   sg13cmos5l_nand3b_1
+      108 1.18E+03   sg13cmos5l_nand4_1
+     1310 9.51E+03   sg13cmos5l_nor2_1
+      276  2.5E+03   sg13cmos5l_nor2b_1
+      296 2.69E+03   sg13cmos5l_nor3_1
+      149 1.62E+03   sg13cmos5l_nor4_1
+     2226 2.02E+04   sg13cmos5l_o21ai_1
+      131 1.19E+03   sg13cmos5l_or2_1
+       75   952.56   sg13cmos5l_or3_1
+       13  188.698   sg13cmos5l_or4_1
+     1803 1.31E+04   sg13cmos5l_tiehi
+        6   43.546   sg13cmos5l_tielo
+     1159 1.68E+04   sg13cmos5l_xnor2_1
+      697 1.01E+04   sg13cmos5l_xor2_1
+
+   Chip area for module '\tt_um_algofoogle_raybox_zero': 234629.892000
+     of which used for sequential elements: 88228.828800 (37.60%)
+
