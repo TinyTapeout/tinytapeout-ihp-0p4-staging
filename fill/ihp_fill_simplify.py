@@ -78,7 +78,7 @@ def main(argv0, in_gds, out_gds):
 				new_cell.add( gdstk.rectangle(c1,c2, layer=ly, datatype=DT_DRAWING) )
 
 		# Hack for IO cells : copy nwell
-		if cell.name.startswith('sg13g2_'):
+		if cell.name.startswith('sg13cmos5l_'):
 			for p in cell.get_polygons(layer=31, datatype=0):
 				new_cell.add(p)
 
@@ -87,7 +87,7 @@ def main(argv0, in_gds, out_gds):
 	def simplify_subcells(cell):
 		sc = {}
 		for r in cell.references:
-			if not r.cell_name.startswith('tt_') and not r.cell_name.startswith('sg13g2_'):
+			if not r.cell_name.startswith('tt_') and not r.cell_name.startswith('sg13cmos5l_'):
 				continue
 			if r.cell_name not in sc:
 				sc[r.cell_name] = simplify_cell(r.cell)

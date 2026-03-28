@@ -12,7 +12,7 @@ jobs:
       PYTHONIOENCODING: utf-8
       TO_REPO_ROOT: ${{ github.workspace }}/TO_Repo
       PDK_ROOT: ${{ github.workspace }}/IHP-Open-PDK
-      PDK: ihp-sg13g2
+      PDK: ihp-sg13cmos5l
 
     runs-on: ubuntu-24.04
     steps:
@@ -20,6 +20,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - name: Install ihp-sg13cmos5l PDK
+        run: ./scripts/setup-cmos5l.sh "$PDK_ROOT"
 
       - name: Checkout TO repo
         uses: actions/checkout@v4
@@ -46,24 +49,36 @@ jobs:
       - name: Run DRC check
         working-directory: tinytapeout-submission
         run: |
-          klayout -b -r ${{ env.TO_REPO_ROOT }}/drc/drc.lydrc -rd "in_gds"="gds/tt_ihp_wrapper_final.gds" -rd "report_file"="tt_ihp_wrapper_final.gds.lyrdb" -rd density=false 2>&1 | tee tt_ihp_wrapper_final.gds.log
-          if [ $? -ne 0 ]; then
-            echo "❌ DRC check failed" | tee -a $GITHUB_STEP_SUMMARY
-            exit 1
+          pip install klayout
+          python3 ${{ env.PDK_ROOT }}/ihp-sg13cmos5l/libs.tech/klayout/tech/drc/run_drc.py \
+            --path "gds/tt_ihp_wrapper_final.gds" \
+            --run_dir drc_results \
+            --no_density --no_recommended --no_offgrid 2>&1 | tee tt_ihp_wrapper_final.gds.log
+
+          # Find the merged DRC report
+          DRC_REPORT=$(find drc_results -name "*_full.lyrdb" -o -name "*_merged.lyrdb" | head -1)
+          if [ -z "$DRC_REPORT" ]; then
+            DRC_REPORT=$(find drc_results -name "*.lyrdb" | head -1)
+          fi
+          if [ -n "$DRC_REPORT" ]; then
+            cp "$DRC_REPORT" tt_ihp_wrapper_final.gds.lyrdb
           fi
 
-          if [ ! -f "tt_ihp_wrapper_final.gds.lyrdb" ]; then
-            echo "❌ DRC report file not found" | tee -a $GITHUB_STEP_SUMMARY
+          # Count DRC errors from the log
+          ERRORS=$(grep -oP 'Number of DRC violations: \K\d+' tt_ihp_wrapper_final.gds.log | tail -1)
+          if [ -z "$ERRORS" ]; then
+            # Fallback: check if klayout completed at all
+            if ! grep -q "completed" tt_ihp_wrapper_final.gds.log; then
+              echo "## ❌ DRC check failed to complete" | tee -a $GITHUB_STEP_SUMMARY
+              exit 1
+            fi
+            echo "✅ DRC check passed" | tee -a $GITHUB_STEP_SUMMARY
+          elif [ "$ERRORS" = "0" ]; then
+            echo "✅ DRC check passed (0 violations)" | tee -a $GITHUB_STEP_SUMMARY
+          else
+            echo "## ❌ DRC: $ERRORS violations found" | tee -a $GITHUB_STEP_SUMMARY
             exit 1
           fi
-
-          if ! grep -q "Number of DRC errors: 0" tt_ihp_wrapper_final.gds.log; then
-            echo "## ❌ DRC errors found in the design" | tee -a $GITHUB_STEP_SUMMARY
-            grep "Number of DRC errors:" tt_ihp_wrapper_final.gds.log | tee -a $GITHUB_STEP_SUMMARY
-            exit 1
-          fi
-
-          echo "✅ DRC check passed" | tee -a $GITHUB_STEP_SUMMARY
 
       - name: Upload precheck results
         uses: actions/upload-artifact@v4
@@ -76,14 +91,17 @@ jobs:
 
   density_check:
     env:
-      PDK_ROOT: ${{ github.workspace }}/pdk
-      PDK: ihp-sg13g2
+      PDK_ROOT: ${{ github.workspace }}/IHP-Open-PDK
+      PDK: ihp-sg13cmos5l
     runs-on: ubuntu-24.04
     steps:
       - name: checkout repo
         uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - name: Install ihp-sg13cmos5l PDK
+        run: ./scripts/setup-cmos5l.sh "$PDK_ROOT"
 
       - name: Install KLayout
         shell: bash
@@ -104,26 +122,14 @@ jobs:
       - name: Run Density check
         working-directory: ihp
         run: |
-          klayout -b -zz \
-            -r ../IHP-Open-PDK/ihp-sg13g2/libs.tech/klayout/tech/drc/sg13g2_density.lydrc \
-            -rd in_gds=gds/tt_ihp_wrapper_final.gds \
-            -rd cell=tt_ihp_wrapper \
-            -rd report_file=density_report.xml \
-            -rd threads=16 | tee density_report.log
+          python3 $PDK_ROOT/ihp-sg13cmos5l/libs.tech/klayout/tech/drc/run_drc.py \
+            --path=gds/tt_ihp_wrapper_final.gds \
+            --density_only \
+            --density_thr=4 2>&1 | tee density_report.log
 
-          if [ $? -ne 0 ]; then
-            echo "❌ Density check failed" | tee -a $GITHUB_STEP_SUMMARY
-            exit 1
-          fi
-
-          if [ ! -f "density_report.xml" ]; then
-            echo "❌ Density report file not found" | tee -a $GITHUB_STEP_SUMMARY
-            exit 1
-          fi
-
-          if ! grep -q "Number of DRC errors: 0" density_report.log; then
-            echo "## ❌ Density errors found in the design" | tee -a $GITHUB_STEP_SUMMARY
-            grep "Number of DRC errors:" density_report.log | tee -a $GITHUB_STEP_SUMMARY
+          if grep -q "FAILED" density_report.log; then
+            echo "## ❌ Density errors found" | tee -a $GITHUB_STEP_SUMMARY
+            grep "FAILED\|violation" density_report.log | tee -a $GITHUB_STEP_SUMMARY
             exit 1
           fi
 

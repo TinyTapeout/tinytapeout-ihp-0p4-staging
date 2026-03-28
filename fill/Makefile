@@ -31,9 +31,10 @@ $(TMP_DIR)/step-fill2.gds: $(SRC) | $(TMP_DIR)
 		-r ${PDK_ROOT}/${PDK}/libs.tech/klayout/tech/scripts/filler.py \
 		-rd output_file=$@ \
 		-rd no_activ \
+		-rd no_topmetal \
 		$<
 
-# Step 4b: Metal2 micro fill boost — adds 1.0x1.0 um fill cells in gaps
+# Step 4b: Metal2 micro fill boost - adds 1.0x1.0 um fill cells in gaps
 # too narrow for the standard fill cells, fixing marginal M2Fil.h/k
 # density violations.
 $(TMP_DIR)/step-fill2b.gds: $(TMP_DIR)/step-fill2.gds | $(TMP_DIR)
@@ -49,7 +50,7 @@ $(FINAL_GDS): $(TMP_DIR)/step-fill2b.gds $(TMP_DIR)/step-fill1.gds | $(TMP_DIR)
 # Step 6: Run DRC check
 drc_report.log: $(FINAL_GDS)
 	$(KLAYOUT_CMD) -b -zz \
-		-r sg13g2_density.lydrc \
+		-r ${PDK_ROOT}/${PDK}/libs.tech/klayout/tech/drc/ihp-sg13cmos5l.drc \
 		-rd in_gds=$< \
 		-rd cell=tt_ihp_wrapper \
 		-rd report_file=drc_report.xml \

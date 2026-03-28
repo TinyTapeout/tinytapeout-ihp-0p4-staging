@@ -11,7 +11,7 @@ jobs:
     name: Check user project submission
     runs-on: ubuntu-24.04
     env:
-      TT_CONFIG: ihp-sg13g2.yaml
+      TT_CONFIG: ihp-sg13cmos5l.yaml
     steps:
       - name: checkout repo
         uses: actions/checkout@v4
@@ -40,10 +40,10 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
     env:
-      PDK: ihp-sg13g2
+      PDK: ihp-sg13cmos5l
       PDK_ROOT: ${{ github.workspace }}/IHP-Open-PDK
-      PDK_NAME: ihp-sg13g2
-      TECH: ihp-sg13g2
+      PDK_NAME: ihp-sg13cmos5l
+      TECH: ihp-sg13cmos5l
     steps:
       - name: checkout repo
         uses: actions/checkout@v4

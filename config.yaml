@@ -1,6 +1,6 @@
 id: 'ttihp0p4'
 name: 'Tiny Tapeout IHP 0p4'
-pdk: 'ihp-sg13g2'
+pdk: 'ihp-sg13cmos5l'
 end_date: '2026-03-28'
 project_dir: 'projects'
 top_level_macro: 'tt_ihp_wrapper'

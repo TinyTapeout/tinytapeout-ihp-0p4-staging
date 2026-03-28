@@ -16,9 +16,9 @@ jobs:
     env:
       SHUTTLE_SLUG: TTIHP0p4
       PYTHONIOENCODING: utf-8
-      PDK: ihp-sg13g2
+      PDK: ihp-sg13cmos5l
       PDK_ROOT: ${{ github.workspace }}/IHP-Open-PDK
-      TT_CONFIG: ihp-sg13g2.yaml
+      TT_CONFIG: ihp-sg13cmos5l.yaml
       # Uncomment the following line to build only the specified projects:
       #TT_ONLY_PROJECTS: tt_um_chip_rom,tt_um_factory_test
 
@@ -37,6 +37,10 @@ jobs:
           swap-storage: false
           android: false
 
+
+      - name: Install ihp-sg13cmos5l PDK
+        run: ./scripts/setup-cmos5l.sh "$PDK_ROOT" --init-pycell
+
       - name: setup python
         uses: actions/setup-python@v5
         with:
@@ -53,6 +57,9 @@ jobs:
           extra_nix_config: |
             extra-substituters = https://nix-cache.fossi-foundation.org
             extra-trusted-public-keys = nix-cache.fossi-foundation.org:3+K59iFwXqKsL7BNu6Guy0v+uTlwsxYQxjspXzqLYQs=
+
+      - name: Generate bondpad
+        run: nix-shell $GITHUB_WORKSPACE/librelane/shell.nix --run "./scripts/generate-bondpad.sh"
 
       - name: Harden Chip ROM
         run: nix-shell $GITHUB_WORKSPACE/librelane/shell.nix --run "python -m librelane --pdk-root $PDK_ROOT --manual-pdk --pdk $PDK tt/rom/config.json"
@@ -72,12 +79,12 @@ jobs:
         run: |
           sed -i 's/^[[:space:]]*KLayout\.DRC,$/#&/' tt-multiplexer/ol2/tt_top/build.py
           sed -i 's/^[[:space:]]*Checker\.KLayoutDRC,$/#&/' tt-multiplexer/ol2/tt_top/build.py
-          sed -i 's/^[[:space:]]*Magic\.DRC,$/#&/' tt-multiplexer/ol2/tt_top/build.py
-          sed -i 's/^[[:space:]]*Checker\.MagicDRC,$/#&/' tt-multiplexer/ol2/tt_top/build.py
 
       - name: Harden tt_top
         working-directory: tt-multiplexer/ol2/tt_top
-        run: nix-shell $GITHUB_WORKSPACE/librelane/shell.nix --run "python build.py"
+        run: |
+          export SYSTEM_PYTHON=$(which python3)
+          nix-shell $GITHUB_WORKSPACE/librelane/shell.nix --run "python build.py"
 
       - name: Copy final results
         run: python ./tt/configure.py --copy-final-results
@@ -137,7 +144,9 @@ jobs:
 
       # Install iverilog (required for GL simulation)
       - name: install iverilog
-        run: sudo apt-get update && sudo apt-get install -y iverilog
+        run: |
+          wget https://github.com/TinyTapeout/iverilog/releases/download/v13.0/iverilog_13.0-1_amd64.deb
+          sudo apt-get update && sudo apt-get install -y ./iverilog_13.0-1_amd64.deb
 
       - name: GL simulation
         working-directory: verilog/dv/mux
@@ -145,7 +154,7 @@ jobs:
           EXPECTED_REPO: ${{ github.repository }}
         run: |
           # temporary workaround for missing bits in pad_raw:
-          sed -i 's/inout \[49:0\] pad_raw/inout [63:0] pad_raw/' ../../../foundry_submission/verilog/gl/tt_ihp_wrapper.nl.v
+          sed -i 's/inout \[[0-9]*:0\] pad_raw/inout [63:0] pad_raw/' ../../../foundry_submission/verilog/gl/tt_ihp_wrapper.nl.v
 
           make clean test_mux_gl
           # make will return success even if the test fails, so check for failure in the results.xml

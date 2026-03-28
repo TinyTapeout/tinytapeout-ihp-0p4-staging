@@ -15,7 +15,7 @@ jobs:
   verification:
     env:
       PDK_ROOT: ${{ github.workspace }}/IHP-Open-PDK
-      PDK: ihp-sg13g2
+      PDK: ihp-sg13cmos5l
 
     # ubuntu
     runs-on: ubuntu-24.04
@@ -24,6 +24,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+
+
+      - name: Install ihp-sg13cmos5l PDK
+        run: ./scripts/setup-cmos5l.sh "$PDK_ROOT"
 
       # Set Python up
       - name: setup python

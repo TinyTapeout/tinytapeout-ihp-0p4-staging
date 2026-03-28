@@ -13,3 +13,5 @@ foundry_submission/
 
 # pip-compile
 *.egg-info
+.venv/
+pdk/
