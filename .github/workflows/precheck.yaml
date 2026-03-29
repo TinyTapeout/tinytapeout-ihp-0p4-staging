@@ -48,12 +48,13 @@ jobs:
 
       - name: Run DRC check
         working-directory: tinytapeout-submission
+        env:
+          PYTHONPATH: /usr/lib/klayout/pymod
         run: |
-          pip install klayout
           python3 ${{ env.PDK_ROOT }}/ihp-sg13cmos5l/libs.tech/klayout/tech/drc/run_drc.py \
             --path "gds/tt_ihp_wrapper_final.gds" \
             --run_dir drc_results \
-            --no_density --no_recommended --no_offgrid 2>&1 | tee tt_ihp_wrapper_final.gds.log
+            --table main --no_density --no_recommended --no_offgrid 2>&1 | tee tt_ihp_wrapper_final.gds.log
 
           # Find the merged DRC report
           DRC_REPORT=$(find drc_results -name "*_full.lyrdb" -o -name "*_merged.lyrdb" | head -1)
@@ -121,6 +122,8 @@ jobs:
 
       - name: Run Density check
         working-directory: ihp
+        env:
+          PYTHONPATH: /usr/lib/klayout/pymod
         run: |
           python3 $PDK_ROOT/ihp-sg13cmos5l/libs.tech/klayout/tech/drc/run_drc.py \
             --path=gds/tt_ihp_wrapper_final.gds \
@@ -130,6 +133,12 @@ jobs:
           if grep -q "FAILED" density_report.log; then
             echo "## ❌ Density errors found" | tee -a $GITHUB_STEP_SUMMARY
             grep "FAILED\|violation" density_report.log | tee -a $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+          if ! grep -q "completed\|PASSED\|passed" density_report.log; then
+            echo "## ❌ Density check failed to complete" | tee -a $GITHUB_STEP_SUMMARY
+            tail -5 density_report.log | tee -a $GITHUB_STEP_SUMMARY
             exit 1
           fi
 
