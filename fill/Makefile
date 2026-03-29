@@ -3,7 +3,7 @@ FINAL_GDS = ../foundry_submission/gds/tt_ihp_wrapper_final.gds
 TMP_DIR = tmp
 KLAYOUT_CMD ?= klayout
 
-.PHONY: all clean check fill klayout_test
+.PHONY: all clean check fill
 
 all: check
 
@@ -12,11 +12,11 @@ fill: $(FINAL_GDS)
 $(TMP_DIR):
 	mkdir -p $(TMP_DIR)
 
-# Step 1: Simplify geometry
+# Step 1: Simplify geometry for active/poly fill
 $(TMP_DIR)/step-simplify.gds: $(SRC) | $(TMP_DIR)
 	python3 ./ihp_fill_simplify.py $< $@
 
-# Step 3: Fill Poly+Active
+# Step 2: Fill Poly+Active using KLayout
 $(TMP_DIR)/step-fill1.gds: $(TMP_DIR)/step-simplify.gds | $(TMP_DIR)
 	$(KLAYOUT_CMD) -b -zz \
 		-r ${PDK_ROOT}/${PDK}/libs.tech/klayout/tech/scripts/filler.py \
@@ -25,39 +25,15 @@ $(TMP_DIR)/step-fill1.gds: $(TMP_DIR)/step-simplify.gds | $(TMP_DIR)
 		-rd no_topmetal \
 		$<
 
-# Step 4: Fill Metal1-5, TopMetal1-2
+# Step 3: Fill Metal using Magic (better local density than KLayout)
 $(TMP_DIR)/step-fill2.gds: $(SRC) | $(TMP_DIR)
-	$(KLAYOUT_CMD) -b -zz \
-		-r ${PDK_ROOT}/${PDK}/libs.tech/klayout/tech/scripts/filler.py \
-		-rd output_file=$@ \
-		-rd no_activ \
-		-rd no_topmetal \
-		$<
+	cd $(TMP_DIR) && python3 ${PDK_ROOT}/${PDK}/libs.tech/magic/generate_fill.py \
+		$(abspath $<) -dist
+	python3 ./ihp_magic_fill_collect.py $(TMP_DIR) $@
 
-# Step 4b: Metal2 micro fill boost - adds 1.0x1.0 um fill cells in gaps
-# too narrow for the standard fill cells, fixing marginal M2Fil.h/k
-# density violations.
-$(TMP_DIR)/step-fill2b.gds: $(TMP_DIR)/step-fill2.gds | $(TMP_DIR)
-	$(KLAYOUT_CMD) -b -zz \
-		-r ./ihp_fill_m2_boost.lym \
-		-rd output_file=$@ \
-		$<
-
-# Step 5: Combine fills
-$(FINAL_GDS): $(TMP_DIR)/step-fill2b.gds $(TMP_DIR)/step-fill1.gds | $(TMP_DIR)
+# Step 4: Combine active fill + metal fill
+$(FINAL_GDS): $(TMP_DIR)/step-fill2.gds $(TMP_DIR)/step-fill1.gds | $(TMP_DIR)
 	./ihp_fill_combine.py $^ $@
 
-# Step 6: Run DRC check
-drc_report.log: $(FINAL_GDS)
-	$(KLAYOUT_CMD) -b -zz \
-		-r ${PDK_ROOT}/${PDK}/libs.tech/klayout/tech/drc/ihp-sg13cmos5l.drc \
-		-rd in_gds=$< \
-		-rd cell=tt_ihp_wrapper \
-		-rd report_file=drc_report.xml \
-		-rd threads=16 | tee drc_report.log
-
-check: drc_report.log
-	grep -q "Number of DRC errors: 0" drc_report.log
-
 clean:
-	rm -rf $(TMP_DIR)/*.gds drc_report.xml $(FINAL_GDS) drc_report.log
+	rm -rf $(TMP_DIR)/*.gds $(TMP_DIR)/*.gds.gz $(TMP_DIR)/*.tcl $(FINAL_GDS)

@@ -128,7 +128,29 @@ jobs:
 
       - name: Generate fill and add logo
         working-directory: fill
-        run: make fill KLAYOUT_CMD=/usr/bin/klayout -j2
+        run: |
+          # Step 1: Simplify + Active/Poly fill
+          mkdir -p tmp
+          python3 ./ihp_fill_simplify.py ../foundry_submission/gds/tt_ihp_wrapper.gds tmp/step-simplify.gds
+          /usr/bin/klayout -b -zz \
+            -r $PDK_ROOT/$PDK/libs.tech/klayout/tech/scripts/filler.py \
+            -rd output_file=tmp/step-fill1.gds \
+            -rd no_metal -rd no_topmetal \
+            tmp/step-simplify.gds
+
+          # Step 2: Metal fill using Magic
+          cp ../foundry_submission/gds/tt_ihp_wrapper.gds tmp/tt_ihp_wrapper.gds
+          cd tmp && nix-shell $GITHUB_WORKSPACE/librelane/shell.nix --run \
+            "python3 $PDK_ROOT/$PDK/libs.tech/magic/generate_fill.py tt_ihp_wrapper.gds -dist"
+          cd ..
+          python3 ./ihp_magic_fill_collect.py tmp tmp/step-fill2.gds
+
+          # Step 3: Combine original design + magic metal fill + active fill
+          python3 ./ihp_fill_merge.py \
+            ../foundry_submission/gds/tt_ihp_wrapper.gds \
+            tmp/step-fill2.gds \
+            tmp/step-fill1.gds \
+            ../foundry_submission/gds/tt_ihp_wrapper_final.gds
 
       - name: Rename top-level cell for IHP submission, convert to OAS
         run: |
