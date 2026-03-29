@@ -6,3 +6,65 @@ modules:
   - name: factory_test
     x: 5
     y: 8
+  # Move dense neighbor projects OUT of violation windows.
+  # Violation windows: left (x=0-2, y=2-8), right (x=7-9, y=5-12)
+  # Pin these projects to the top half (y >= 12)
+  - name: lledoux_bf16_diminished_kulisch
+    x: 0
+    y: 18
+    width: 3
+    height: 2
+  - name: 2048_vga_game
+    x: 3
+    y: 18
+    width: 3
+    height: 2
+  - name: spongent88
+    x: 0
+    y: 16
+    width: 2
+    height: 2
+  - name: snake_game
+    x: 2
+    y: 16
+    width: 2
+    height: 2
+  - name: lledoux_s3fdp_seqcomb
+    x: 4
+    y: 16
+    width: 2
+    height: 2
+  - name: tinymoa_ihp0p4_16x16
+    x: 0
+    y: 14
+    width: 2
+    height: 2
+  - name: htfab_asicle2
+    x: 2
+    y: 14
+    width: 2
+    height: 2
+  - name: miniMAC
+    x: 4
+    y: 14
+    height: 2
+  - name: htfab_rotfpga2
+    x: 5
+    y: 14
+    height: 2
+  - name: toivoh_demo
+    x: 0
+    y: 12
+    height: 2
+  - name: tinytapeout_logo_screensaver
+    x: 1
+    y: 12
+    height: 2
+  - name: flummer_ltc
+    x: 2
+    y: 12
+    height: 2
+  - name: prism_lite
+    x: 3
+    y: 12
+    height: 2
